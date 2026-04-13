@@ -4,6 +4,18 @@ LogLense connects to your Jenkins instance, fetches build logs, and uses **Claud
 
 ---
 
+https://github.com/user-attachments/assets/f194feb8-7b86-4af8-b0d7-ae2a081cbd60
+
+
+
+
+
+<img width="1438" height="856" alt="Screenshot 2026-04-13 at 2 42 33 PM" src="https://github.com/user-attachments/assets/0c6ad744-aa42-4c1b-a984-aac64a01590f" />
+<img width="1440" height="900" alt="Screenshot 2026-04-13 at 2 31 07 PM" src="https://github.com/user-attachments/assets/d20e5483-cc62-4959-b51b-5de4c01a8eed" />
+<img width="1440" height="900" alt="Screenshot 2026-04-13 at 2 41 44 PM" src="https://github.com/user-attachments/assets/0a94fd33-a6cb-405b-9c9e-1ba0a4998d11" />
+<img width="1440" height="886" alt="Screenshot 2026-04-13 at 2 42 14 PM" src="https://github.com/user-attachments/assets/adae0307-e334-4825-bca4-922023dfa683" />
+
+
 ## Features
 
 | Feature | Description |
