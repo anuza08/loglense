@@ -32,8 +32,6 @@ When a CI build fails, you open a 3,000-line log file, grep for "ERROR", read st
 <img width="1440" height="900" alt="Screenshot 2026-04-13 at 2 31 07 PM" src="https://github.com/user-attachments/assets/3567b763-5e15-445f-aa92-067820daeab7" />
 | **Full Failure Analysis** | Root cause, error breakdown, step-by-step fix instructions, and prevention tips |
 | **Quick Summary** | A 5-line triage — what broke and exactly how to fix it |
-
-<img width="1440" height="886" alt="Screenshot 2026-04-13 at 2 42 14 PM" src="https://github.com/user-attachments/assets/6291b852-7928-43d1-b82d-2d4d227ef182" />
 | **Build Trend Report** | Health score + stability pattern across your recent build history |
 | **Flaky Test Detection** | Identifies tests that pass sometimes and fail others — across builds |
 | **Build Comparison** | Side-by-side diff between any two builds to pinpoint regressions |
@@ -183,6 +181,8 @@ All endpoints are read-only GET requests — LogLense never writes to Jenkins.
 https://github.com/user-attachments/assets/435ba882-11c0-4f43-a526-f555e51c57fe
 
 <img width="1440" height="886" alt="Screenshot 2026-04-13 at 2 42 14 PM" src="https://github.com/user-attachments/assets/8f7ba45b-2d83-49e4-a556-4636a25523a8" />
+
+<img width="1440" height="900" alt="Screenshot 2026-04-13 at 2 41 44 PM" src="https://github.com/user-attachments/assets/82602369-0bc6-4344-bee2-23ef3ba99482" />
 
 ---
 
