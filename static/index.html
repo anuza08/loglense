@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogLense — LLM CI/CD Analyzer</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2d3148;
+      --accent: #6c7bff;
+      --accent-glow: #6c7bff33;
+      --success: #22c55e;
+      --failure: #ef4444;
+      --warning: #f59e0b;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --code-bg: #0d1117;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    header h1 { font-size: 1.4rem; letter-spacing: 1px; color: var(--accent); }
+    header span { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .badge {
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    main { display: grid; grid-template-columns: 320px 1fr; height: calc(100vh - 65px); }
+
+    /* ---- Sidebar ---- */
+    aside {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .section-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.8rem; color: var(--muted); }
+    input, select {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+
+    .btn {
+      padding: 9px 14px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+    .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+    .btn:hover:not(:disabled) { opacity: 0.85; }
+
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .divider { border: none; border-top: 1px solid var(--border); }
+
+    /* Jobs list */
+    .job-list { display: flex; flex-direction: column; gap: 6px; }
+    .job-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      font-size: 0.82rem;
+    }
+    .job-item:hover { border-color: var(--accent); background: var(--accent-glow); }
+    .job-item .job-name { font-weight: 600; margin-bottom: 2px; }
+    .job-item .job-meta { font-size: 0.72rem; color: var(--muted); }
+    .health-bar {
+      height: 3px; border-radius: 3px;
+      background: var(--border); margin-top: 6px;
+    }
+    .health-fill { height: 100%; border-radius: 3px; }
+
+    /* ---- Main Content ---- */
+    .content { overflow-y: auto; padding: 28px 36px; display: flex; flex-direction: column; gap: 20px; }
+
+    .placeholder {
+      margin: auto;
+      text-align: center;
+      color: var(--muted);
+    }
+    .placeholder h2 { font-size: 1.1rem; margin-bottom: 8px; }
+    .placeholder p { font-size: 0.85rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .card-title { font-size: 0.95rem; font-weight: 700; }
+
+    .result-badge {
+      padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700;
+    }
+    .result-SUCCESS { background: #22c55e22; color: var(--success); border: 1px solid var(--success); }
+    .result-FAILURE { background: #ef444422; color: var(--failure); border: 1px solid var(--failure); }
+    .result-UNSTABLE { background: #f59e0b22; color: var(--warning); border: 1px solid var(--warning); }
+    .result-IN_PROGRESS { background: #6c7bff22; color: var(--accent); border: 1px solid var(--accent); }
+
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px; margin-bottom: 16px;
+    }
+    .meta-item { display: flex; flex-direction: column; gap: 3px; }
+    .meta-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+    .meta-value { font-size: 0.9rem; font-weight: 600; }
+
+    .analysis-body {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+    /* Markdown-like styling inside pre */
+    .md h3 { color: var(--accent); margin: 12px 0 6px; font-size: 0.95rem; }
+    .md code { background: #ffffff12; padding: 1px 5px; border-radius: 4px; }
+    .md strong { color: #fff; }
+
+    .token-info {
+      display: flex; gap: 16px; font-size: 0.72rem; color: var(--muted); margin-top: 12px;
+    }
+    .token-info span b { color: var(--text); }
+
+    .spinner {
+      width: 22px; height: 22px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-row { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.85rem; }
+
+    .error-box {
+      background: #ef444418;
+      border: 1px solid var(--failure);
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 0.85rem;
+      color: var(--failure);
+    }
+
+    @media (max-width: 768px) {
+      main { grid-template-columns: 1fr; }
+      aside { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#128269; LogLense</h1>
+  <span>LLM-powered CI/CD Analyzer</span>
+  <span class="badge">Claude</span>
+</header>
+
+<main>
+  <!-- Sidebar -->
+  <aside>
+    <div>
+      <div class="section-title">Jenkins Connection</div>
+      <div class="form-group">
+        <label>Job Name</label>
+        <input id="jobInput" type="text" placeholder="e.g. my-service-build" />
+      </div>
+      <div class="form-group" style="margin-top:10px">
+        <label>Build Number</label>
+        <input id="buildInput" type="text" placeholder="lastBuild (default)" />
+      </div>
+    </div>
+
+    <div class="action-grid">
+      <button class="btn btn-primary" onclick="runAnalysis()">Full Analysis</button>
+      <button class="btn btn-secondary" onclick="runQuickSummary()">Quick Summary</button>
+      <button class="btn btn-secondary" onclick="loadBuildMeta()">Build Info</button>
+      <button class="btn btn-secondary" onclick="runTrend()">Trend</button>
+    </div>
+
+    <hr class="divider" />
+
+    <div>
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        Jenkins Jobs
+        <button class="btn btn-secondary btn-sm" onclick="loadJobs()">Refresh</button>
+      </div>
+      <div id="jobList" class="job-list">
+        <span style="font-size:0.78rem;color:var(--muted)">Click Refresh to load jobs</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Content -->
+  <div class="content" id="content">
+    <div class="placeholder">
+      <h2>Welcome to LogLense</h2>
+      <p>Enter a Jenkins job name and click an action to start analyzing builds.</p>
+      <p style="margin-top:8px">Or refresh the jobs list to browse available jobs.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+  const API = '/api/v1';
+
+  function getJob() { return document.getElementById('jobInput').value.trim(); }
+  function getBuild() { return document.getElementById('buildInput').value.trim() || 'lastBuild'; }
+
+  function setContent(html) { document.getElementById('content').innerHTML = html; }
+
+  function loading(msg = 'Analyzing with Claude...') {
+    setContent(`<div class="loading-row"><div class="spinner"></div><span>${msg}</span></div>`);
+  }
+
+  function err(msg) {
+    setContent(`<div class="error-box"><b>Error:</b> ${msg}</div>`);
+  }
+
+  function resultBadge(result) {
+    const cls = ['SUCCESS','FAILURE','UNSTABLE','IN_PROGRESS'].includes(result) ? result : 'IN_PROGRESS';
+    return `<span class="result-badge result-${cls}">${result}</span>`;
+  }
+
+  function durationStr(ms) {
+    if (!ms) return '—';
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    return m ? `${m}m ${s % 60}s` : `${s}s`;
+  }
+
+  // Simple markdown-ish renderer (headings + bold)
+  function renderMd(text) {
+    return text
+      .replace(/### (.+)/g, '<h3>$1</h3>')
+      .replace(/## (.+)/g, '<h3>$1</h3>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+  }
+
+  async function loadBuildMeta() {
+    const job = getJob(); if (!job) return err('Enter a job name first.');
+    loading('Fetching build metadata...');
+    try {
+      const r = await fetch(`${API}/jobs/${encodeURIComponent(job)}/builds/${getBuild()}`);
+      if (!r.ok) throw new Error(await r.text());
+      const d = await r.json();
+      setContent(`
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">${d.job_name}</span>
+            ${resultBadge(d.result)}
+          </div>
+          <div class="meta-grid">
+            <div class="meta-item"><span class="meta-label">Build</span><span class="meta-value">#${d.build_number}</span></div>
+            <div class="meta-item"><span class="meta-label">Duration</span><span class="meta-value">${durationStr(d.duration_ms)}</span></div>
+            <div class="meta-item"><span class="meta-label">Triggered by</span><span class="meta-value">${d.causes.join(', ') || '—'}</span></div>
+            <div class="meta-item"><span class="meta-label">Culprits</span><span class="meta-value">${d.culprits.join(', ') || '—'}</span></div>
+          </div>
+          <a href="${d.url}" target="_blank" style="font-size:0.8rem;color:var(--accent)">Open in Jenkins ↗</a>
+        </div>
+      `);
+    } catch(e) { err(e.message); }
+  }
+
+  async function runQuickSummary() {
+    const job = getJob(); if (!job) return err('Enter a job name first.');
+    loading('Generating quick summary...');
+    try {
+      const r = await fetch(`${API}/jobs/${encodeURIComponent(job)}/builds/${getBuild()}/quick-summary`);
+      if (!r.ok) throw new Error(await r.text());
+      const d = await r.json();
+      setContent(`
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Quick Summary — ${d.job_name} #${d.build_number}</span>
+            ${resultBadge(d.result)}
+          </div>
+          <div class="analysis-body md">${renderMd(d.summary)}</div>
+        </div>
+      `);
+    } catch(e) { err(e.message); }
+  }
+
+  async function runAnalysis() {
+    const job = getJob(); if (!job) return err('Enter a job name first.');
+    loading('Running full LLM analysis (this may take ~10s)...');
+    try {
+      const r = await fetch(`${API}/jobs/${encodeURIComponent(job)}/builds/${getBuild()}/analyse`);
+      if (!r.ok) throw new Error(await r.text());
+      const d = await r.json();
+      setContent(`
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Failure Analysis — ${d.job_name} #${d.build_number}</span>
+            ${resultBadge(d.result)}
+          </div>
+          <div class="analysis-body md">${renderMd(d.analysis)}</div>
+          <div class="token-info">
+            <span>Prompt tokens: <b>${d.prompt_tokens}</b></span>
+            <span>Completion tokens: <b>${d.completion_tokens}</b></span>
+            <span>Cached tokens: <b>${d.cached_tokens}</b></span>
+          </div>
+        </div>
+      `);
+    } catch(e) { err(e.message); }
+  }
+
+  async function runTrend() {
+    const job = getJob(); if (!job) return err('Enter a job name first.');
+    loading('Analyzing build trend...');
+    try {
+      const r = await fetch(`${API}/jobs/${encodeURIComponent(job)}/trend`);
+      if (!r.ok) throw new Error(await r.text());
+      const d = await r.json();
+      setContent(`
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Build Trend — ${d.job_name}</span>
+          </div>
+          <div class="analysis-body md">${renderMd(d.analysis)}</div>
+        </div>
+      `);
+    } catch(e) { err(e.message); }
+  }
+
+  async function loadJobs() {
+    const listEl = document.getElementById('jobList');
+    listEl.innerHTML = '<div class="loading-row"><div class="spinner"></div><span>Loading...</span></div>';
+    try {
+      const r = await fetch(`${API}/jobs`);
+      if (!r.ok) throw new Error(await r.text());
+      const jobs = await r.json();
+      if (!jobs.length) { listEl.innerHTML = '<span style="font-size:0.78rem;color:var(--muted)">No jobs found</span>'; return; }
+      listEl.innerHTML = jobs.map(j => {
+        const healthColor = j.health_score >= 80 ? 'var(--success)' : j.health_score >= 50 ? 'var(--warning)' : 'var(--failure)';
+        return `
+          <div class="job-item" onclick="selectJob('${j.name}')">
+            <div class="job-name">${j.name}</div>
+            <div class="job-meta">Last build: #${j.last_build_number ?? '—'} &nbsp;|&nbsp; Health: ${j.health_score}%</div>
+            <div class="health-bar"><div class="health-fill" style="width:${j.health_score}%;background:${healthColor}"></div></div>
+          </div>
+        `;
+      }).join('');
+    } catch(e) {
+      listEl.innerHTML = `<span style="font-size:0.78rem;color:var(--failure)">${e.message}</span>`;
+    }
+  }
+
+  function selectJob(name) {
+    document.getElementById('jobInput').value = name;
+    document.getElementById('buildInput').value = '';
+  }
+</script>
+</body>
+</html>

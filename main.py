@@ -1,0 +1,60 @@
+"""
+LogLense — LLM-powered CI/CD analyzer.
+Entry point: starts the FastAPI application.
+"""
+
+import logging
+
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+from config import settings
+from api.routes import router
+
+logging.basicConfig(
+    level=getattr(logging, settings.log_level.upper(), logging.INFO),
+    format="%(asctime)s  %(levelname)-8s  %(name)s — %(message)s",
+)
+
+app = FastAPI(
+    title="LogLense",
+    description="LLM-powered CI/CD automation — Jenkins build analysis & failure summaries",
+    version="0.1.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(router)
+
+# Serve the frontend dashboard
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return FileResponse("static/index.html")
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "service": "loglense"}
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host=settings.app_host,
+        port=settings.app_port,
+        reload=True,
+        log_level=settings.log_level.lower(),
+    )
