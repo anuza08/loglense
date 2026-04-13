@@ -1,0 +1,89 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+
+.refreshBtn {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.refreshBtn:disabled {
+  opacity: 0.5;
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.error {
+  font-size: 0.78rem;
+  color: var(--failure);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jobCard {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.jobCard:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.jobName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.jobMeta {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.healthBar {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--border);
+  margin-top: 7px;
+}
+
+.healthFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
