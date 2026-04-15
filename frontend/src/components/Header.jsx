@@ -7,7 +7,7 @@ export default function Header() {
         <span className={styles.logo}>🔍 LogLense</span>
         <span className={styles.subtitle}>LLM-powered CI/CD Analyzer</span>
       </div>
-      <span className={styles.badge}>Claude AI</span>
+      {/* <span className={styles.badge}>Claude AI</span> */}
     </header>
   )
 }
