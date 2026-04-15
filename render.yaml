@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: loglense
+    runtime: python
+    buildCommand: pip install -r requirements.txt && cd frontend && npm install && npm run build
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: JENKINS_URL
+        sync: false
+      - key: JENKINS_USER
+        sync: false
+      - key: JENKINS_TOKEN
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LLM_MODEL
+        value: claude-sonnet-4-6
+      - key: LLM_MAX_TOKENS
+        value: "2048"
+      - key: PYTHON_VERSION
+        value: "3.11.0"
